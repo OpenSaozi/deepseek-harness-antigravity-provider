@@ -1,0 +1,51 @@
+{
+  "name": "@deepseek-ai/dsh-llm-pi-ai-antigravity",
+  "description": "Google Anti Gravity OAuth, model catalog, and Cloud Code Assist provider for DeepSeek Harness",
+  "version": "0.1.0-rc.5",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib/**/*.js", "lib/**/*.d.ts", "src/**/*.ts", "cordis.patch.yml"],
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSaozi/deepseek-harness-antigravity-provider.git"
+  },
+  "homepage": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider#readme",
+  "bugs": { "url": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider/issues" },
+  "keywords": [
+    "deepseek-harness",
+    "google-antigravity",
+    "cloud-code-assist",
+    "gemini",
+    "claude",
+    "oauth2",
+    "pi-ai",
+    "llm"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/dsh-credentials": "workspace:^",
+    "@deepseek-ai/dsh-invariants": "workspace:^",
+    "@deepseek-ai/dsh-llm-pi-ai": "workspace:^",
+    "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.82.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-credentials": "workspace:^",
+    "@deepseek-ai/dsh-invariants": "workspace:^",
+    "@deepseek-ai/dsh-llm-pi-ai": "workspace:^",
+    "@deepseek-ai/cordis": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^"
+  }
+}
