@@ -1,5 +1,7 @@
 node_modules/
-lib/
+lib/**/*.map
+lib/types/**/*.js
+lib/tsconfig.tsbuildinfo
 *.tsbuildinfo
 .DS_Store
 .env

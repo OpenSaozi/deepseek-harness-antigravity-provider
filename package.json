@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-llm-pi-ai-antigravity",
-  "description": "Google Anti Gravity OAuth, model catalog, and Cloud Code Assist provider for DeepSeek Harness",
+  "description": "Google Anti Gravity and Cloud Code Assist Coding Plan LLM Provider plugin for DeepSeek Harness",
   "version": "0.1.0-rc.5",
   "private": true,
   "type": "module",
@@ -9,6 +9,7 @@
   "exports": {
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
     "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
@@ -22,8 +23,12 @@
   "homepage": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider#readme",
   "bugs": { "url": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider/issues" },
   "keywords": [
+    "deepseek",
     "deepseek-harness",
+    "dsh-plugin",
+    "llm-provider",
     "google-antigravity",
+    "coding-plan",
     "cloud-code-assist",
     "gemini",
     "claude",

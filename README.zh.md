@@ -1,28 +1,29 @@
-# DeepSeek Harness Anti Gravity 提供方插件
+# DSH Plugin: LLM Provider - Anti Gravity
 
 [English](README.md) | 中文
 
-`@deepseek-ai/dsh-llm-pi-ai-antigravity` 是一个面向 [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 的非官方 Google Anti Gravity 和 Cloud Code Assist 提供方插件。它接入 Google OAuth、认证模型发现和原生流式推理，让账号可见的 Gemini、Claude 和 GPT-OSS 模型可用，且不调用 Anti Gravity CLI。
+允许接入 **Google Anti Gravity** 的 Coding Plan 作为 LLM Provider，让 [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 可以直接使用你账号下绑定的全部顶尖 AI 模型（包括 Gemini 3.7/3.6/3.5 Flash、Gemini 3.1 Pro、Claude 3.7 / Opus 4.6、GPT-OSS 等），完全在浏览器网页端流畅对话与编程。
 
-该路由使用两条凭据服务引用。`GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG` 保存 OAuth 应用的私有 JSON 配置，`GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL` 保存 pi-ai 规范的用户 OAuth 文档。首次登录时，插件会验证一份由 Google 签名的 macOS Anti Gravity IDE，将应用配置导入 Harness 凭据服务，然后打开普通的浏览器授权流程。两类值都不会随源码分发，也不会进入设置、模型清单、日志或浏览器响应。
+## 适用人群与场景
 
-## 特性
+适合安装了 Google Anti Gravity IDE 或拥有 Cloud Code Assist 权限，希望在 DeepSeek Harness 统一工作台里直接调用这些高性能模型进行日常编码、复杂推理与工具调用的开发者。
 
-- 通过 HTTPS 直接请求账号已授权的 Cloud Code Assist 服务，不启动 `agy` 子进程。
-- 用在线 `fetchAvailableModels` 核对经评审的 Gemini 3.7/3.6/3.5、Gemini 3.1 Pro、Claude 4.6 和 GPT-OSS 描述。
-- Harness 运行时仍然可见系统提示词、对话历史、工具、思考签名、用量、取消和 SSE 流。
-- 默认推理请求不包含隐藏 Anti Gravity 身份提示、伪造用户消息或兼容性请求头。
-- macOS 上一键完成 OAuth 准备，无需手工复制 client id 或 client secret。
+## 核心特性
 
-## 安装
+- **轻量原生直连**：直接通过 HTTPS 请求官方 Cloud Code Assist 服务，无需在后台挂起繁重的 `agy` 子进程或 IDE。
+- **macOS 一键授权**：自动验证并读取本地签名的 Anti Gravity 客户端配置，点击浏览器授权即可完成登录，免去手工复制 Client ID / Secret 的麻烦。
+- **模型自动发现**：通过在线 `fetchAvailableModels` 实时核对账号可用的 Gemini、Claude 与 GPT-OSS 系列模型。
+- **纯净原生体验**：完整保留模型的深度思考过程（Thinking）、流式打字与工具调用能力，不掺杂任何隐藏系统提示词、伪造消息或多余请求头。
 
-请把经过评审的提交安装进一个 DeepSeek Harness profile。仓库携带 `dsh.bundle` patch 和预构建运行文件，因此通过 Git 安装时无需授权包构建：
+## 极简安装与使用
+
+请把经过评审的提交安装进指定的 DeepSeek Harness profile。仓库自带 `dsh.bundle` 配置和预构建运行文件，通过 Git 安装无需在本地执行构建：
 
 ```sh
 dsh plugin --profile <profile> add github:OpenSaozi/deepseek-harness-antigravity-provider#<commit-sha>
 ```
 
-安装后的组合包会贡献下面这条 Cordis 配置：
+安装后，插件会自动在 Cordis 配置中注入以下内容：
 
 ```yaml
 - id: llm-pi-ai-antigravity
@@ -31,25 +32,16 @@ dsh plugin --profile <profile> add github:OpenSaozi/deepseek-harness-antigravity
     oauthClientConfigRef: GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG
 ```
 
-该引用属于部署配置，不是凭据值。随附的本地凭据提供方默认把导入文档保存在 `$DSH_HOME/.credentials.yaml`；其他部署可以换成钥匙串或 KMS 支持的 `ctx.credentials` 实现，而无需修改本插件。
+配置说明：`oauthClientConfigRef` 属于部署配置，指向凭据引用名称。本地凭据提供方默认将导入文档保存在 `$DSH_HOME/.credentials.yaml` 中，支持无缝切换至系统钥匙串或 KMS 服务。
 
-该源码当前跟踪 DeepSeek Harness 的宿主受控传输提案。在提案落地前，本插件仍是受信任的进程内代码，可以访问已解析的 OAuth 凭据和网络传输。授权账号前请先审查源码。
+## 安全与凭据管理
 
-## System Prompt Handling
-
-Harness 系统提示词会作为 Cloud Code Assist 的 `systemInstruction` 发送。插件不附加隐藏产品提示词，也不改写用户指令。
-
-## Model Context
-
-维护描述覆盖经评审的 Gemini 3.7/3.6/3.5 Flash、Gemini 3.1 Pro、Claude Sonnet/Opus 4.6 和 GPT-OSS 120B 变体。认证在线刷新成功后，会将它们与账号可见清单取交集，并更新匹配的显示元数据；不会把远端未知 id 猜测成可服务描述。
-
-## Tool Schemas
-
-Harness 工具经 pi-ai 的 Google schema 桥转换。Claude 系列路由使用 Cloud Code Assist 要求的旧式 `parameters` 字段；工具调用 id 与思考签名会保留到后续轮次。
+- 插件使用两条凭据引用：`GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG`（保存应用配置）与 `GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL`（保存用户 OAuth 凭据）。
+- 所有凭据均保存在 Harness 宿主安全存储中，不会随源码分发，也不会泄露至设置页面、模型清单、日志或前端响应。
 
 ## 参与贡献
 
-欢迎提交 issue 和范围明确的 pull request。请说明观察到的提供方响应，删除凭据和账号标识，同时更新两种 README 语言，并在版本匹配的 DeepSeek Harness 工作区中运行包测试。不要添加未验证模型 id、猜测的容量元数据、隐藏提示词或后备 mock 数据。
+欢迎提交 issue 和范围明确的 pull request。请说明观察到的提供方响应，删除凭据和账号标识，同时更新中英文 README，并在版本匹配的 DeepSeek Harness 工作区中运行包测试。
 
 ## 许可证与声明
 
