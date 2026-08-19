@@ -1,6 +1,4 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
-#   pnpm run verify-translation-pairing --write packages/llm/llm-pi-ai-antigravity/README.md
-README.md: 5114331dd223ad798634f4d358cf5cc55931b178
-README.zh.md: 202760e30039cf9f8d0502c9fa4cba86da27af5b
+# Standalone plugin README pair: README.md is Chinese (GitHub default),
+# README.en.md is English. Both languages carry equal authority.
+README.md: 644f70c8e054a6cdf0782a03326790822c7b5f93
+README.en.md: 3615092758482772b737b7c1c123b2d06ac7e7d3

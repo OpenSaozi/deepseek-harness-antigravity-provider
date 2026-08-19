@@ -18,10 +18,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OpenSaozi/deepseek-harness-antigravity-provider.git"
+    "url": "git+https://github.com/OpenSaozi/dsh-antigravity.git"
   },
-  "homepage": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider#readme",
-  "bugs": { "url": "https://github.com/OpenSaozi/deepseek-harness-antigravity-provider/issues" },
+  "homepage": "https://github.com/OpenSaozi/dsh-antigravity#readme",
+  "bugs": { "url": "https://github.com/OpenSaozi/dsh-antigravity/issues" },
   "keywords": [
     "deepseek",
     "deepseek-harness",

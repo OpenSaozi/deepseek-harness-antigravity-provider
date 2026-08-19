@@ -1,29 +1,29 @@
 # DSH Plugin: LLM Provider - Anti Gravity
 
-English | [中文](README.zh.md)
+中文 | [English](README.en.md)
 
-Allows connecting to the **Google Anti Gravity** Coding Plan as an LLM Provider, enabling [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) to directly use all top-tier AI models under your account (including Gemini 3.7/3.6/3.5 Flash, Gemini 3.1 Pro, Claude 3.7 / Opus 4.6, GPT-OSS, etc.) for seamless web-based chat and coding.
+允许接入 **Google Anti Gravity** 的 Coding Plan 作为 LLM Provider，让 [DeepSeek Harness](https://github.com/deepseek-ai/DeepSeek-Harness) 可以直接使用你账号下绑定的全部顶尖 AI 模型（包括 Gemini 3.7/3.6/3.5 Flash、Gemini 3.1 Pro、Claude 3.7 / Opus 4.6、GPT-OSS 等），完全在浏览器网页端流畅对话与编程。
 
-## Target Audience and Use Cases
+## 适用人群与场景
 
-Designed for developers with Google Anti Gravity IDE installed or active Cloud Code Assist entitlements who want to access these high-performance models within the unified DeepSeek Harness workspace for coding, reasoning, and tool execution.
+适合安装了 Google Anti Gravity IDE 或拥有 Cloud Code Assist 权限，希望在 DeepSeek Harness 统一工作台里直接调用这些高性能模型进行日常编码、复杂推理与工具调用的开发者。
 
-## Key Features
+## 核心特性
 
-- **Lightweight Native Direct Connection**: Directly connects over HTTPS to Cloud Code Assist without spawning background `agy` subprocesses or IDE instances.
-- **One-Click macOS Authorization**: Automatically validates and imports signed macOS Anti Gravity client configurations, opening the standard browser OAuth flow without manual Client ID/Secret copying.
-- **Dynamic Model Discovery**: Queries the live `fetchAvailableModels` endpoint to surface reviewed Gemini, Claude, and GPT-OSS model variants.
-- **Clean Native Experience**: Preserves thinking signatures, streaming output, and tool invocation contracts without injected provider system prompts, synthetic messages, or custom headers.
+- **轻量原生直连**：直接通过 HTTPS 请求官方 Cloud Code Assist 服务，无需在后台挂起繁重的 `agy` 子进程或 IDE。
+- **macOS 一键授权**：自动验证并读取本地签名的 Anti Gravity 客户端配置，点击浏览器授权即可完成登录，免去手工复制 Client ID / Secret 的麻烦。
+- **模型自动发现**：通过在线 `fetchAvailableModels` 实时核对账号可用的 Gemini、Claude 与 GPT-OSS 系列模型。
+- **纯净原生体验**：完整保留模型的深度思考过程（Thinking）、流式打字与工具调用能力，不掺杂任何隐藏系统提示词、伪造消息或多余请求头。
 
-## Installation and Quick Start
+## 极简安装与使用
 
-Install a reviewed revision into a DeepSeek Harness profile. The repository provides a `dsh.bundle` patch and prebuilt runtime artifacts so no local build steps are required:
+请把经过评审的提交安装进指定的 DeepSeek Harness profile。仓库自带 `dsh.bundle` 配置和预构建运行文件，通过 Git 安装无需在本地执行构建：
 
 ```sh
-dsh plugin --profile <profile> add github:OpenSaozi/deepseek-harness-antigravity-provider#<commit-sha>
+dsh plugin --profile <profile> add github:OpenSaozi/dsh-antigravity#<commit-sha>
 ```
 
-The installed bundle contributes the following Cordis configuration:
+安装后，插件会自动在 Cordis 配置中注入以下内容：
 
 ```yaml
 - id: llm-pi-ai-antigravity
@@ -32,40 +32,40 @@ The installed bundle contributes the following Cordis configuration:
     oauthClientConfigRef: GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG
 ```
 
-Configuration note: `oauthClientConfigRef` is a deployment configuration reference pointing to credential storage. The bundled local credentials provider stores imported records in `$DSH_HOME/.credentials.yaml`, and seamlessly adapts to system keychain or KMS credential backends.
+配置说明：`oauthClientConfigRef` 属于部署配置，指向凭据引用名称。本地凭据提供方默认将导入文档保存在 `$DSH_HOME/.credentials.yaml` 中，支持无缝切换至系统钥匙串或 KMS 服务。
 
-## Security and Credentials
+## 安全与凭据管理
 
-- The plugin uses two credential references: `GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG` for private OAuth application details and `GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL` for user tokens.
-- Credentials remain inside the Harness host credential service and never leak into settings, model catalogs, logs, or frontend responses.
+- 插件使用两条凭据引用：`GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG`（保存应用配置）与 `GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL`（保存用户 OAuth 凭据）。
+- 所有凭据均保存在 Harness 宿主安全存储中，不会随源码分发，也不会泄露至设置页面、模型清单、日志或前端响应。
 
-## Contributing
+## 参与贡献
 
-Issues and scoped pull requests are welcome. Please describe observed provider responses, omit secrets and account identifiers, update both README languages, and run package tests in a matching DeepSeek Harness workspace.
+欢迎提交 issue 和范围明确的 pull request。请说明观察到的提供方响应，删除凭据和账号标识，同时更新中英文 README，并在版本匹配的 DeepSeek Harness 工作区中运行包测试。
 
-## License and Disclaimer
+## 许可证与声明
 
-MIT License. This independent integration is not affiliated with or endorsed by Google, DeepMind, DeepSeek, or pi-ai maintainers. Google Anti Gravity and related model names are trademarks of their respective owners.
+采用 MIT 许可证。该独立集成与 Google、DeepMind、DeepSeek 或 pi-ai 维护者无隶属或背书关系。Google Anti Gravity 及相关模型名称是其各自所有者的商标。
 
-## Model Experience
+## 模型体验
 
-### Anti Gravity Inference
+### Anti Gravity 推理
 
-#### What the model sees
+#### 模型看到的内容
 
-The selected model receives the Harness system prompt as `systemInstruction`, along with normalized conversation messages and tool definitions. The plugin adds no vendor prompts or instructions. The transport retains native Cloud Code Assist envelopes: sending authorized JSON/SSE headers and official fields (`project`, `model`, `request`, `requestType`, `userAgent`, and `requestId`) without compatibility headers, identity messages, or synthetic turns.
+所选模型会收到作为 `systemInstruction` 的 Harness 系统提示词、转换后的对话消息和工具声明。插件不添加供应商提示词或说明性文本。传输层保持 Cloud Code Assist 原生封装：默认只发送经过授权的 JSON/SSE 必要请求头，以及官方 `project`、`model`、`request`、`requestType`、`userAgent` 和 `requestId` 外层字段，不注入兼容性请求头、身份消息或伪造的对话内容。
 
-#### Token effect
+#### Token 影响
 
-No additional model-visible tokens are added beyond the system prompt, history, and tools in the request. Cloud Code Assist reports prompt, candidate, thinking, and cached token counts; the adapter maps these fields directly without estimation.
+除请求中的系统提示词、历史与工具外，插件不增加模型可见 Token。Cloud Code Assist 会报告提示词、候选、思考和缓存 Token 用量；适配器只映射这些字段，不估算缺失用量。
 
-#### KV Cache effect
+#### KV Cache 影响
 
-Logical message order is preserved. Thinking signatures and tool call IDs persist across subsequent turns. Upstream cache reuse remains governed by Cloud Code Assist and may reset when earlier turns or models change.
+逻辑消息顺序保持不变。思考签名和工具调用标识会保留到后续轮次，但供应商侧缓存复用仍由 Cloud Code Assist 控制；模型或更早的请求内容变化时，复用可能改变。
 
-## Known Limitations and Deferred Work
+## 已知限制与暂缓事项
 
-- Google delivers this subscription path over internal `v1internal` Cloud Code Assist endpoints rather than public Gemini APIs; endpoint changes may affect this plugin independently of public Gemini services.
-- OAuth requires an interactive browser login initiated from the Harness Models page, and the account must hold active service entitlements.
-- Automatic OAuth client import currently supports Google-signed macOS `Antigravity IDE.app` installations. Non-standard paths can be supplied via `macosApplicationPath`; other operating systems require credentials pre-provisioned via the credentials service.
-- Catalog items describe provider capabilities and do not guarantee remaining quota. Depleted quotas return as provider errors during inference.
+- Google 通过内部 `v1internal` Cloud Code Assist 端点提供这条订阅路径，而不是公开 Gemini API。端点或权益变化可能在公开 Gemini 服务正常时单独破坏该插件。
+- OAuth 需要从 Harness Models 页面发起交互式浏览器登录，且账号必须拥有底层服务的使用权限。
+- OAuth 应用自动导入目前支持由 Google 签名的 macOS `Antigravity IDE.app`。非标准安装路径可以通过 `macosApplicationPath` 指定；其他操作系统在拥有对应的签名客户端导入器之前，需要从外部预置凭据服务值。
+- 清单值描述提供方能力，不保证账号剩余额度。额度耗尽仍会在推理时作为提供方错误返回。
