@@ -28,6 +28,10 @@ export interface Config {
      * session keeps completing requests instead of being refused for size.
      */
     maxRequestImageBytes?: number;
+    /** Total-pixel budget for each deterministic inline request version. */
+    requestImagePixelBudget?: number;
+    /** Raw encoded-byte cap for each deterministic inline request version. */
+    requestImageMaxBytes?: number;
 }
 /** Schemastery validator for the independent Anti Gravity route. */
 export declare const Config: z<Config>;

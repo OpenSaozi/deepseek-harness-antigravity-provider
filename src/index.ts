@@ -1,6 +1,6 @@
 /** Independent Google Anti Gravity provider route and OAuth settings service. */
 
-import { createProvider } from '@earendil-works/pi-ai'
+import { createProvider, defaultProviderAuthContext, InMemoryCredentialStore } from '@earendil-works/pi-ai'
 import type { Api, ApiKeyAuth, Model, Provider } from '@earendil-works/pi-ai'
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
@@ -57,6 +57,8 @@ const DEFAULT_OAUTH_CREDENTIAL_REF = 'GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL'
 const DEFAULT_DISPLAY_NAME = 'Google Anti Gravity'
 const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
 const DEFAULT_MAX_REQUEST_IMAGE_BYTES = 20 * 1024 * 1024
+const DEFAULT_REQUEST_IMAGE_PIXEL_BUDGET = 2048 * 2048
+const DEFAULT_REQUEST_IMAGE_MAX_BYTES = 1024 * 1024
 
 /** Deployment configuration contains references and paths, never OAuth values. */
 export interface Config {
@@ -76,6 +78,10 @@ export interface Config {
    * session keeps completing requests instead of being refused for size.
    */
   maxRequestImageBytes?: number
+  /** Total-pixel budget for each deterministic inline request version. */
+  requestImagePixelBudget?: number
+  /** Raw encoded-byte cap for each deterministic inline request version. */
+  requestImageMaxBytes?: number
 }
 
 /** Schemastery validator for the independent Anti Gravity route. */
@@ -86,6 +92,8 @@ export const Config: z<Config> = z.object({
   displayName: z.string().default(DEFAULT_DISPLAY_NAME),
   streamIdleTimeoutMs: z.number().min(Number.MIN_VALUE).max(MAX_TIMER_DELAY_MS).default(DEFAULT_STREAM_IDLE_TIMEOUT_MS),
   maxRequestImageBytes: z.number().step(1).min(1).default(DEFAULT_MAX_REQUEST_IMAGE_BYTES),
+  requestImagePixelBudget: z.number().step(1).min(1).default(DEFAULT_REQUEST_IMAGE_PIXEL_BUDGET),
+  requestImageMaxBytes: z.number().step(1).min(1).default(DEFAULT_REQUEST_IMAGE_MAX_BYTES),
 })
 
 interface ResolvedConfig {
@@ -95,12 +103,16 @@ interface ResolvedConfig {
   readonly displayName: string
   readonly streamIdleTimeoutMs: number
   readonly maxRequestImageBytes: number
+  readonly requestImagePixelBudget: number
+  readonly requestImageMaxBytes: number
 }
 
 function resolveConfig(config: Config): ResolvedConfig {
   const displayName = config.displayName ?? DEFAULT_DISPLAY_NAME
   const streamIdleTimeoutMs = config.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS
   const maxRequestImageBytes = config.maxRequestImageBytes ?? DEFAULT_MAX_REQUEST_IMAGE_BYTES
+  const requestImagePixelBudget = config.requestImagePixelBudget ?? DEFAULT_REQUEST_IMAGE_PIXEL_BUDGET
+  const requestImageMaxBytes = config.requestImageMaxBytes ?? DEFAULT_REQUEST_IMAGE_MAX_BYTES
   if (displayName.length === 0) throw new Error('llm-pi-ai-antigravity: displayName must not be empty')
   if (!Number.isFinite(streamIdleTimeoutMs)
     || streamIdleTimeoutMs <= 0
@@ -112,6 +124,12 @@ function resolveConfig(config: Config): ResolvedConfig {
   if (!Number.isInteger(maxRequestImageBytes) || maxRequestImageBytes <= 0) {
     throw new Error('llm-pi-ai-antigravity: maxRequestImageBytes must be a positive integer')
   }
+  if (!Number.isSafeInteger(requestImagePixelBudget) || requestImagePixelBudget <= 0) {
+    throw new Error('llm-pi-ai-antigravity: requestImagePixelBudget must be a positive safe integer')
+  }
+  if (!Number.isSafeInteger(requestImageMaxBytes) || requestImageMaxBytes <= 0) {
+    throw new Error('llm-pi-ai-antigravity: requestImageMaxBytes must be a positive safe integer')
+  }
   return {
     oauthCredentialEnv: credentialRef(config.oauthCredentialEnv ?? DEFAULT_OAUTH_CREDENTIAL_REF),
     oauthClientConfigRef: config.oauthClientConfigRef ?? DEFAULT_OAUTH_CLIENT_CONFIG_REF,
@@ -119,6 +137,8 @@ function resolveConfig(config: Config): ResolvedConfig {
     displayName,
     streamIdleTimeoutMs,
     maxRequestImageBytes,
+    requestImagePixelBudget,
+    requestImageMaxBytes,
   }
 }
 
@@ -162,6 +182,8 @@ function profileFor(
     displayName: config.displayName,
     streamIdleTimeoutMs: config.streamIdleTimeoutMs,
     maxRequestImageBytes: config.maxRequestImageBytes,
+    requestImagePixelBudget: config.requestImagePixelBudget,
+    requestImageMaxBytes: config.requestImageMaxBytes,
     retryPolicy: resolveRetryPolicy(undefined, 'llm-pi-ai-antigravity: retryPolicy'),
     configuredMaxTokens: new Map(),
     piProvider: providerFor(config, models, oauth),
@@ -187,6 +209,10 @@ export function apply(ctx: Context, rawConfig: Config): void {
   const adapter = new PiAiAdapter({
     profiles: () => profiles,
     resolveApiKey: () => credentials.resolveApiKey(),
+    auth: {
+      credentials: new InMemoryCredentialStore(),
+      authContext: defaultProviderAuthContext(),
+    },
     resolveAttachments: () => ctx.get('attachments'),
   })
   const registration = ctx.llm.registerAdapter([PROVIDER], adapter)
@@ -217,7 +243,7 @@ export function apply(ctx: Context, rawConfig: Config): void {
       controller.abort()
     }
   }, 'llm-pi-ai-antigravity: live refresh')
-  ctx.on('credentials/updated', (ref) => {
+  ctx.on('credentials/reference-updated', (ref) => {
     if (ref === config.oauthCredentialEnv) refresh()
   })
 }
