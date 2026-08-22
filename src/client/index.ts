@@ -37,7 +37,10 @@ function valueOf<T>(operation: string, result: RemoteResult<T>): T {
   throw new Error(`${operation} failed: ${result.error.code}: ${result.error.message}`)
 }
 
-export const inject = ['slots', 'locale', 'remote', 'remote.antiGravityAuth']
+// `remote.antiGravityAuth` is deliberately absent: this plugin mounts that
+// contribution itself, and the Loader withholds `apply()` until every injected
+// service exists, so naming it here leaves the entry pending on itself.
+export const inject = ['slots', 'locale', 'remote']
 
 /**
  * Register the Anti Gravity login page in Web Settings.
@@ -47,7 +50,13 @@ export async function apply(ctx: ClientContext): Promise<void> {
   const disposeRemote = await ctx.remote.$mount(antiGravityRemote)
   ctx.effect(() => disposeRemote, 'llm-pi-ai-antigravity: client Remote contribution')
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'llm-pi-ai-antigravity: client dictionaries')
-  const remote = (ctx.remote as unknown as { antiGravityAuth: AntiGravityRemoteClient }).antiGravityAuth
+  // `ctx.get`, not the property proxy: the proxy answers only for declared
+  // injections, and this contribution cannot be one of ours without the entry
+  // waiting on the mount below to have already happened.
+  const remote = ctx.get('remote.antiGravityAuth') as AntiGravityRemoteClient | undefined
+  if (remote === undefined) {
+    throw new Error('llm-pi-ai-antigravity: the client Remote contribution did not register antiGravityAuth')
+  }
   const api: AntiGravitySettingsInjected = {
     describe: async () => valueOf('antiGravityAuth.describe', await remote.describe()),
     start: async () => valueOf('antiGravityAuth.start', await remote.start()),
