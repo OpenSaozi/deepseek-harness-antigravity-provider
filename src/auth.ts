@@ -140,7 +140,11 @@ async function login(
   }
 }
 
-/** Build the OAuth method around a host-owned, per-operation client-config resolver. */
+/**
+ * Build the OAuth method around a host-owned, per-operation client-config resolver.
+ * @param resolveClientConfig - Resolve the private OAuth client pair for each login or refresh.
+ * @returns Provider-native OAuth operations for login, refresh, and request authentication.
+ */
 export function createAntiGravityOAuth(
   resolveClientConfig: () => Promise<AntiGravityOAuthClientConfig>,
 ): OAuthAuth {

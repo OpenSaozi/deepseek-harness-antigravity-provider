@@ -46,7 +46,11 @@ function validateClientConfig(value: unknown): AntiGravityOAuthClientConfig {
   return { clientId, clientSecret }
 }
 
-/** Parse one credential-store value without exposing either field in diagnostics. */
+/**
+ * Parse one credential-store value without exposing either field in diagnostics.
+ * @param value - Serialized OAuth client configuration from the credential store.
+ * @returns Validated client id and client secret.
+ */
 export function parseOAuthClientConfig(value: string): AntiGravityOAuthClientConfig {
   try {
     return validateClientConfig(JSON.parse(value))
@@ -62,6 +66,8 @@ export function parseOAuthClientConfig(value: string): AntiGravityOAuthClientCon
  * Extract the normal, non-GCP-ToS client pair from the official IDE module.
  * The marker and adjacent assignment shape intentionally fail closed when the
  * vendor changes its bundle instead of guessing among unrelated OAuth ids.
+ * @param source - JavaScript source from the verified official application bundle.
+ * @returns Validated client id and client secret.
  */
 export function extractOAuthClientConfig(source: string): AntiGravityOAuthClientConfig {
   const marker = source.indexOf(OAUTH_MODULE_MARKER)
@@ -104,7 +110,11 @@ async function verifyMacApplicationContents(applicationPath: string): Promise<vo
   })
 }
 
-/** Import the client pair from a verified official macOS installation. */
+/**
+ * Import the client pair from a verified official macOS installation.
+ * @param applicationPath - Optional explicit application bundle path.
+ * @returns Client configuration extracted after signature and path verification.
+ */
 export async function importInstalledOAuthClientConfig(applicationPath?: string): Promise<AntiGravityOAuthClientConfig> {
   if (process.platform !== 'darwin') {
     throw new Error('Automatic Anti Gravity OAuth client import currently requires macOS')
@@ -133,7 +143,14 @@ export async function importInstalledOAuthClientConfig(applicationPath?: string)
   throw new AggregateError(failures, 'No supported, Google-signed Anti Gravity IDE installation was found')
 }
 
-/** Resolve the private client config, importing and persisting it once when absent. */
+/**
+ * Resolve the private client config, importing and persisting it once when absent.
+ * @param credentials - Credential store that owns the private client pair.
+ * @param refValue - Credential reference used for the serialized client pair.
+ * @param applicationPath - Optional explicit application bundle path for first import.
+ * @param importer - Import operation used when the credential reference is absent.
+ * @returns Validated client configuration for the next OAuth operation.
+ */
 export async function resolveOAuthClientConfig(
   credentials: CredentialStore,
   refValue = DEFAULT_OAUTH_CLIENT_CONFIG_REF,

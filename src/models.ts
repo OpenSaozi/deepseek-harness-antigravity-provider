@@ -1,6 +1,6 @@
 /** Maintained and live-reconciled Anti Gravity model descriptors. */
 
-import type { Model, RefreshModelsContext } from '@earendil-works/pi-ai'
+import type { Credential, Model, RefreshModelsContext } from '@earendil-works/pi-ai'
 import { antiGravityHeaders } from './auth.ts'
 
 /** Private pi-ai API identity owned by this provider plugin. */
@@ -92,6 +92,19 @@ export function parseAvailableModels(payload: unknown): readonly Model<AntiGravi
  */
 export async function fetchAvailableModels(context: RefreshModelsContext): Promise<readonly Model<AntiGravityApi>[]> {
   const credential = context.credential
+  return fetchAvailableModelsForCredential(credential, context.signal)
+}
+
+/**
+ * Fetch the account-authorized model list from an explicitly resolved OAuth credential.
+ * @param credential - current credential resolved by this plugin.
+ * @param signal - optional cancellation signal.
+ * @returns reviewed account-visible Anti Gravity descriptors.
+ */
+export async function fetchAvailableModelsForCredential(
+  credential: Credential | undefined,
+  signal?: AbortSignal,
+): Promise<readonly Model<AntiGravityApi>[]> {
   if (credential?.type !== 'oauth'
     || typeof credential.projectId !== 'string'
     || credential.projectId.length === 0) {
@@ -103,7 +116,7 @@ export async function fetchAvailableModels(context: RefreshModelsContext): Promi
       method: 'POST',
       headers: antiGravityHeaders(credential.access),
       body: JSON.stringify({ project: credential.projectId }),
-      ...context.signal === undefined ? {} : { signal: context.signal },
+      ...signal === undefined ? {} : { signal },
     })
     if (response.ok) {
       const models = parseAvailableModels(await response.json())

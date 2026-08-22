@@ -1,3 +1,7 @@
 - insert:
     - id: llm-pi-ai-antigravity
       name: '@deepseek-ai/dsh-llm-pi-ai-antigravity'
+      config:
+        oauthCredentialEnv: GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL
+        oauthClientConfigRef: GOOGLE_ANTIGRAVITY_OAUTH_CLIENT_CONFIG
+        displayName: Google Anti Gravity
