@@ -16,8 +16,12 @@ afterEach(() => {
 
 const t: Parameters<typeof AntiGravitySettings>[0]['t'] = makeTranslate(en)
 
+// Global standard kit stubs: this page consumes neither hook.
+const unusedHook = (() => { throw new Error('unused by the Anti Gravity settings page') }) as never
+const kit = { useSessions: unusedHook, useWorkspaces: unusedHook }
+
 function props(injected: AntiGravitySettingsInjected): Parameters<typeof AntiGravitySettings>[0] {
-  return { ...injected, t, close: vi.fn() }
+  return { ...injected, ...kit, t, close: vi.fn() }
 }
 
 describe('Anti Gravity settings page', () => {

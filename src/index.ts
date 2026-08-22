@@ -56,6 +56,7 @@ export const inject = ['llm', 'credentials']
 const DEFAULT_OAUTH_CREDENTIAL_REF = 'GOOGLE_ANTIGRAVITY_OAUTH_CREDENTIAL'
 const DEFAULT_DISPLAY_NAME = 'Google Anti Gravity'
 const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
+const DEFAULT_MAX_REQUEST_IMAGE_BYTES = 20 * 1024 * 1024
 
 /** Deployment configuration contains references and paths, never OAuth values. */
 export interface Config {
@@ -69,6 +70,12 @@ export interface Config {
   displayName?: string
   /** Maximum provider idle time while one stream read is outstanding. */
   streamIdleTimeoutMs?: number
+  /**
+   * Base64 image payload bound for one request. Older images become text
+   * placeholders once a session's accumulated images exceed it, so a long
+   * session keeps completing requests instead of being refused for size.
+   */
+  maxRequestImageBytes?: number
 }
 
 /** Schemastery validator for the independent Anti Gravity route. */
@@ -78,6 +85,7 @@ export const Config: z<Config> = z.object({
   macosApplicationPath: z.string(),
   displayName: z.string().default(DEFAULT_DISPLAY_NAME),
   streamIdleTimeoutMs: z.number().min(Number.MIN_VALUE).max(MAX_TIMER_DELAY_MS).default(DEFAULT_STREAM_IDLE_TIMEOUT_MS),
+  maxRequestImageBytes: z.number().step(1).min(1).default(DEFAULT_MAX_REQUEST_IMAGE_BYTES),
 })
 
 interface ResolvedConfig {
@@ -86,11 +94,13 @@ interface ResolvedConfig {
   readonly macosApplicationPath?: string
   readonly displayName: string
   readonly streamIdleTimeoutMs: number
+  readonly maxRequestImageBytes: number
 }
 
 function resolveConfig(config: Config): ResolvedConfig {
   const displayName = config.displayName ?? DEFAULT_DISPLAY_NAME
   const streamIdleTimeoutMs = config.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS
+  const maxRequestImageBytes = config.maxRequestImageBytes ?? DEFAULT_MAX_REQUEST_IMAGE_BYTES
   if (displayName.length === 0) throw new Error('llm-pi-ai-antigravity: displayName must not be empty')
   if (!Number.isFinite(streamIdleTimeoutMs)
     || streamIdleTimeoutMs <= 0
@@ -99,12 +109,16 @@ function resolveConfig(config: Config): ResolvedConfig {
       `llm-pi-ai-antigravity: streamIdleTimeoutMs must be a positive finite number no greater than ${MAX_TIMER_DELAY_MS}`,
     )
   }
+  if (!Number.isInteger(maxRequestImageBytes) || maxRequestImageBytes <= 0) {
+    throw new Error('llm-pi-ai-antigravity: maxRequestImageBytes must be a positive integer')
+  }
   return {
     oauthCredentialEnv: credentialRef(config.oauthCredentialEnv ?? DEFAULT_OAUTH_CREDENTIAL_REF),
     oauthClientConfigRef: config.oauthClientConfigRef ?? DEFAULT_OAUTH_CLIENT_CONFIG_REF,
     ...config.macosApplicationPath === undefined ? {} : { macosApplicationPath: config.macosApplicationPath },
     displayName,
     streamIdleTimeoutMs,
+    maxRequestImageBytes,
   }
 }
 
@@ -147,6 +161,7 @@ function profileFor(
     provider: PROVIDER,
     displayName: config.displayName,
     streamIdleTimeoutMs: config.streamIdleTimeoutMs,
+    maxRequestImageBytes: config.maxRequestImageBytes,
     retryPolicy: resolveRetryPolicy(undefined, 'llm-pi-ai-antigravity: retryPolicy'),
     configuredMaxTokens: new Map(),
     piProvider: providerFor(config, models, oauth),

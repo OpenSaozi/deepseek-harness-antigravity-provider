@@ -20,6 +20,7 @@ export declare const en: {
     readonly signingOut: "Signing out…";
     readonly loadFailed: "Could not read Anti Gravity login status.";
 };
+/** Translation keys rendered by the Anti Gravity settings page. */
 export type AntiGravityLocaleKey = keyof typeof en;
 /** Chinese strings matching {@link en}. */
 export declare const zh: Record<AntiGravityLocaleKey, string>;

@@ -22,6 +22,12 @@ export interface Config {
     displayName?: string;
     /** Maximum provider idle time while one stream read is outstanding. */
     streamIdleTimeoutMs?: number;
+    /**
+     * Base64 image payload bound for one request. Older images become text
+     * placeholders once a session's accumulated images exceed it, so a long
+     * session keeps completing requests instead of being refused for size.
+     */
+    maxRequestImageBytes?: number;
 }
 /** Schemastery validator for the independent Anti Gravity route. */
 export declare const Config: z<Config>;
